@@ -23,7 +23,7 @@ def wp_get_latest():
 
 def create_site():
   # get new site name
-  new_site = raw_input("What is the new Wordpress site name: ")
+  new_site = input("What is the new Wordpress site name: ")
 
   # need to check if folder exists
   new_site = str.strip(new_site)
