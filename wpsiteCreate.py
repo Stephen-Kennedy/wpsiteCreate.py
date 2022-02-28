@@ -6,45 +6,53 @@ import sys
 import pwd
 import grp
 
-def wp_get_latest():
-  path = os.getcwd() # get the current directory for a base path
+def prepare_for_install():
+  # Define list of dependencies for Wordpress
+  dependency_list = ['apache2',
+                     'ghostscript',
+                     'libapache2-mod-php',
+                     'mysql-server',
+                     'php',
+                     'php-bcmath',
+                     'php-curl',
+                     'php-imagick',
+                     'php-intl',
+                     'php-json',
+                     'php-mbstring',
+                     'php-mysql',
+                     'php-xml',
+                     'php-zip'
+  ]
 
-  #need to check if folder exits
+  for dependency in dependency_list:
+    os.system(f'apt install {dependency} -y')
 
-  #get latest version of wordpress and extract
+def install_wordpress():
+  # get latest version of wordpress and extract
   os.system('curl -O https://wordpress.org/latest.tar.gz')
-  os.system('tar xzvf latest.tar.gz' )
+  os.system('tar -zxvf latest.tar.gz')
 
-  # copy sample folders for wp-config and prep for moving to /var/www/html/
-  tmp_path = ('%s/wordpress' % path)
-  os.system('cp %s/wp-config-sample.php %s/wp-config.php' % (tmp_path, tmp_path))
-  upgrade_folder = ('%s/wp-content/upgrade' % path)
-  os.system('chown -R stitched:www-data wordpress/')
-
-def create_site():
-  # get new site name
-  new_site = input("What is the new Wordpress site name: ")
-
-  # need to check if folder exists
-  new_site = str.strip(new_site)
-  full_site = ('/var/www/html/%s' % new_site)
-  os.system("cp -a wordpress/. %s" %  full_site)
+  # define new site name
+  site_name = input('What is the new WordPress site name? \n')
+  full_site = (f'/var/www/html/{site_name}')
+  os.system(f'cp -R wordpress {full_site}')
 
   # set gid bit on each directory to ensure new files inherit permissions
-  os.system('find %s -type d -exec chmod 755 {} \;' % full_site)
+  os.system('find %s -type d -exec chmod 755 \{} \;' % full_site)
 
   # Change file structure to be a bit more restrictive
   os.system('find %s -type f -exec chmod 664 {} \;' % full_site)
 
   # add group write to wp-content. Make is recursive to promote file updating
-  os.system('chmod -R 775 %s/wp-content' % full_site)
+  os.system(f'chmod -R 775 {full_site}/wp-content')
 
   # give server write access to plugins and themes
-  os.system('chmod -R g+w %s/wp-content/themes' % full_site)
-  os.system('chmod -R g+w %s/wp-content/plugins' % full_site)
+  os.system(f'chmod -R g+w {full_site}/wp-content/themes')
+  os.system(f'chmod -R g+w {full_site}/wp-content/plugins')
+  os.system(f'chown -R rykt3r:www-data {full_site}' )
 
   # update root permissions of wordpress directory
-  os.system('chmod 750 %s' % full_site)
+  os.system(f'chmod 750 {full_site}')
 
-wp_get_latest()
-create_site()
+#prepare_for_intall()
+install_wordpress()
